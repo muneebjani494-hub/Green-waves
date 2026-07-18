@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 
+const chartSymbols = [
+  { symbol: 'NASDAQ:AAPL', name: 'Apple' },
+  { symbol: 'NASDAQ:MSFT', name: 'Microsoft' },
+  { symbol: 'NYSE:SPY', name: 'S&P 500' },
+];
+
 const depositMethods = [
   'JazzCash',
   'EasyPaisa',
@@ -84,23 +90,46 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.25em] text-emerald-400">Green Waves</p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-              Trading dashboard for international markets
-            </h1>
-            <p className="mt-4 max-w-2xl text-slate-400 sm:text-lg">
-              Practice with a demo account, request manual deposits, and monitor live global market data from a trusted feed.
-            </p>
+        <header className="rounded-3xl border border-slate-800 bg-slate-900/80 px-5 py-4 shadow-2xl shadow-emerald-500/10 backdrop-blur">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10">
+                <svg viewBox="0 0 64 64" className="h-7 w-7" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <rect x="6" y="6" width="52" height="52" rx="14" fill="#020617" />
+                  <path d="M13 42c8-16 16-24 24-24 8 0 12 10 20 10 4 0 8-4 12-10" stroke="#22c55e" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M13 28h8" stroke="#f8fafc" strokeWidth="3" strokeLinecap="round" />
+                  <path d="M25 21h8" stroke="#f8fafc" strokeWidth="3" strokeLinecap="round" />
+                  <path d="M37 31h8" stroke="#f8fafc" strokeWidth="3" strokeLinecap="round" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-400">Green Waves</p>
+                <p className="text-sm text-slate-400">Global market intelligence</p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="rounded-full border border-slate-800 bg-slate-950/70 px-4 py-2 text-sm text-slate-300">
+                {accountMode} access
+              </div>
+              <button
+                onClick={handleSwitchMode}
+                className="rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
+              >
+                Switch to {accountMode === 'Demo' ? 'Live' : 'Demo'} Mode
+              </button>
+            </div>
           </div>
-          <button
-            onClick={handleSwitchMode}
-            className="rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
-          >
-            Switch to {accountMode === 'Demo' ? 'Live' : 'Demo'} Mode
-          </button>
         </header>
+
+        <div className="mt-8">
+          <p className="text-sm uppercase tracking-[0.25em] text-emerald-400">Green Waves</p>
+          <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+            Trading dashboard for international markets
+          </h1>
+          <p className="mt-4 max-w-2xl text-slate-400 sm:text-lg">
+            Practice with a demo account, request manual deposits, and monitor live global market data from a trusted feed.
+          </p>
+        </div>
 
         <section className="mt-8 grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
           <div className="space-y-6">
@@ -138,6 +167,27 @@ function App() {
                 </div>
                 <p className="text-sm text-slate-400">Updated every 30 seconds</p>
               </div>
+
+              <div
+                id="tradingview_market_chart"
+                className="mt-6 h-[320px] w-full overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/90"
+                aria-label="Trading chart"
+              >
+                <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center text-slate-400">
+                  <p className="text-sm uppercase tracking-[0.2em] text-emerald-400">Chart placeholder</p>
+                  <p className="max-w-md text-sm leading-6">
+                    Add a TradingView widget script in the page head or replace this fallback with your preferred market API feed.
+                  </p>
+                  <div className="mt-2 flex flex-wrap justify-center gap-2">
+                    {chartSymbols.map((item) => (
+                      <span key={item.symbol} className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-300">
+                        {item.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               <div className="mt-6 overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/90">
                 <div className="grid grid-cols-4 gap-4 bg-slate-900 px-4 py-3 text-xs uppercase tracking-[0.2em] text-slate-500 sm:grid-cols-4">
                   {marketColumns.map((column) => (

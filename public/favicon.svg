@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Green Waves favicon">
+  <rect width="256" height="256" rx="56" fill="#05070b"/>
+  <path d="M48 176c20-40 40-60 64-60 24 0 36 28 56 28 16 0 28-12 40-32" fill="none" stroke="#22c55e" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M48 118h40" stroke="#0f172a" stroke-width="18" stroke-linecap="round"/>
+  <path d="M96 90h40" stroke="#0f172a" stroke-width="18" stroke-linecap="round"/>
+  <path d="M144 136h40" stroke="#0f172a" stroke-width="18" stroke-linecap="round"/>
+  <path d="M192 102h16" stroke="#0f172a" stroke-width="18" stroke-linecap="round"/>
+</svg>
