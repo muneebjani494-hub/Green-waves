@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { supabase } from './supabaseClient';
 
 const chartSymbols = [
   { symbol: 'BINANCE:BTCUSDT', name: 'BTC/USDT' },
@@ -92,7 +93,7 @@ function App() {
     };
   }, []);
 
-  const handleTransactionRequest = () => {
+  const handleTransactionRequest = async () => {
     setTransactionMessage('');
     const amount = Number(transactionAmount);
 
@@ -112,21 +113,47 @@ function App() {
     }
 
     const request = {
-      id: Date.now(),
       type: transactionType,
       method: transactionMethod,
       amount,
-      walletAddress: walletAddress.trim(),
-      transactionHash: transactionHash.trim(),
-      createdAt: new Date().toLocaleString(),
-      status: 'Pending',
+      wallet_address: walletAddress.trim(),
+      transaction_hash: transactionHash.trim(),
+      status: 'pending',
     };
 
-    setTransactionRequests((current) => [request, ...current]);
-    setTransactionAmount('');
-    setWalletAddress('');
-    setTransactionHash('');
-    setTransactionMessage(`${transactionType} request submitted. Admin approval is pending.`);
+    try {
+      // try to get current user id (if authenticated)
+      let userId = null;
+      try {
+        const userRes = await supabase.auth.getUser();
+        userId = userRes?.data?.user?.id ?? null;
+      } catch (e) {
+        // ignore — user may be unauthenticated
+      }
+
+      const insertRow = {
+        user_id: userId,
+        type: request.type,
+        method: request.method,
+        amount: request.amount,
+        wallet_address: request.wallet_address,
+        transaction_hash: request.transaction_hash,
+        status: request.status,
+      };
+
+      const { data: inserted, error } = await supabase.from('transactions').insert([insertRow]).select();
+      if (error) throw error;
+
+      const saved = inserted?.[0] ?? null;
+      setTransactionRequests((current) => [saved ?? { ...request, id: Date.now(), createdAt: new Date().toLocaleString() }, ...current]);
+      setTransactionAmount('');
+      setWalletAddress('');
+      setTransactionHash('');
+      setTransactionMessage(`${transactionType} request submitted. Admin approval is pending.`);
+    } catch (err) {
+      console.error('Supabase insert failed', err);
+      setTransactionMessage('Failed to submit request. Try again later.');
+    }
   };
 
   const handleSwitchMode = () => {
