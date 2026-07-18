@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { TrendingUp } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
 const chartSymbols = [
@@ -167,14 +168,7 @@ function App() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10">
-                <svg viewBox="0 0 24 24" className="h-7 w-7 text-emerald-300" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <rect x="2" y="2" width="20" height="20" rx="6" fill="#021018" />
-                  <path d="M6 15v-4" stroke="#34d399" strokeWidth="1.6" strokeLinecap="round" />
-                  <path d="M9 17v-8" stroke="#34d399" strokeWidth="1.6" strokeLinecap="round" />
-                  <path d="M12 13v-2" stroke="#34d399" strokeWidth="1.6" strokeLinecap="round" />
-                  <path d="M15 11v-1" stroke="#34d399" strokeWidth="1.6" strokeLinecap="round" />
-                  <path d="M7 12l3-3 3 3 4-4" stroke="#60a5fa" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <TrendingUp className="h-7 w-7 text-emerald-300" aria-hidden="true" />
               </div>
               <div className="flex flex-col leading-tight">
                 <div className="flex items-baseline gap-3">
