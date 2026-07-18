@@ -167,17 +167,21 @@ function App() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10">
-                <svg viewBox="0 0 64 64" className="h-7 w-7" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <rect x="6" y="6" width="52" height="52" rx="14" fill="#020617" />
-                  <path d="M13 42c8-16 16-24 24-24 8 0 12 10 20 10 4 0 8-4 12-10" stroke="#22c55e" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M13 28h8" stroke="#f8fafc" strokeWidth="3" strokeLinecap="round" />
-                  <path d="M25 21h8" stroke="#f8fafc" strokeWidth="3" strokeLinecap="round" />
-                  <path d="M37 31h8" stroke="#f8fafc" strokeWidth="3" strokeLinecap="round" />
+                <svg viewBox="0 0 24 24" className="h-7 w-7 text-emerald-300" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <rect x="2" y="2" width="20" height="20" rx="6" fill="#021018" />
+                  <path d="M6 15v-4" stroke="#34d399" strokeWidth="1.6" strokeLinecap="round" />
+                  <path d="M9 17v-8" stroke="#34d399" strokeWidth="1.6" strokeLinecap="round" />
+                  <path d="M12 13v-2" stroke="#34d399" strokeWidth="1.6" strokeLinecap="round" />
+                  <path d="M15 11v-1" stroke="#34d399" strokeWidth="1.6" strokeLinecap="round" />
+                  <path d="M7 12l3-3 3 3 4-4" stroke="#60a5fa" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-400">Green Waves</p>
-                <p className="text-sm text-slate-400">Global market intelligence</p>
+              <div className="flex flex-col leading-tight">
+                <div className="flex items-baseline gap-3">
+                  <span className="text-lg font-semibold text-white" style={{ fontFamily: 'Poppins, Inter, system-ui' }}>Muneeb</span>
+                  <span className="text-xs font-medium uppercase tracking-[0.12em] text-emerald-400">Owner</span>
+                </div>
+                <p className="text-sm text-slate-400 hidden md:block">Professional trading services</p>
               </div>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
