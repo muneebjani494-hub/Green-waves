@@ -1,19 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 
 const chartSymbols = [
-  { symbol: 'NASDAQ:AAPL', name: 'Apple' },
-  { symbol: 'NASDAQ:MSFT', name: 'Microsoft' },
-  { symbol: 'NYSE:SPY', name: 'S&P 500' },
+  { symbol: 'BINANCE:BTCUSDT', name: 'BTC/USDT' },
+  { symbol: 'BINANCE:ETHUSDT', name: 'ETH/USDT' },
+  { symbol: 'BINANCE:BNBUSDT', name: 'BNB/USDT' },
+  { symbol: 'BINANCE:TRXUSDT', name: 'TRX/USDT' },
+  { symbol: 'BINANCE:ADAUSDT', name: 'ADA/USDT' },
 ];
 
-const depositMethods = [
-  'JazzCash',
-  'EasyPaisa',
-  'Bank Transfer',
-  'Binance',
-];
-
+const transactionMethod = 'Binance';
 const marketColumns = ['Symbol', 'Price', '24h Change', 'Market Cap'];
+const minAmount = 100;
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('en-US', {
@@ -28,12 +25,14 @@ function App() {
   const [accountMode, setAccountMode] = useState('Demo');
   const [demoBalance, setDemoBalance] = useState(10000);
   const [liveBalance] = useState(2500);
-  const [depositMethod, setDepositMethod] = useState(depositMethods[0]);
-  const [depositAmount, setDepositAmount] = useState('');
-  const [depositRequests, setDepositRequests] = useState([]);
+  const [transactionType, setTransactionType] = useState('Deposit');
+  const [transactionAmount, setTransactionAmount] = useState('');
+  const [walletAddress, setWalletAddress] = useState('');
+  const [transactionHash, setTransactionHash] = useState('');
+  const [transactionRequests, setTransactionRequests] = useState([]);
   const [marketData, setMarketData] = useState([]);
   const [loadingMarket, setLoadingMarket] = useState(true);
-  const [depositMessage, setDepositMessage] = useState('');
+  const [transactionMessage, setTransactionMessage] = useState('');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -42,45 +41,92 @@ function App() {
       setLoadingMarket(true);
       try {
         const response = await fetch(
-          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=6&page=1&sparkline=false',
+          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,ethereum,binancecoin,tron,cardano,dogecoin&order=market_cap_desc&per_page=6&page=1&sparkline=false',
           { signal: controller.signal }
         );
         const data = await response.json();
         setMarketData(data || []);
       } catch (error) {
         console.error('Market data load failed', error);
+        setMarketData([]);
       } finally {
         setLoadingMarket(false);
       }
     }
 
+    function createTradingViewWidget() {
+      if (typeof window === 'undefined' || !window.TradingView || !document.getElementById('tradingview_widget')) {
+        return;
+      }
+
+      new window.TradingView.widget({
+        autosize: true,
+        symbol: 'BINANCE:BTCUSDT',
+        interval: '60',
+        timezone: 'Etc/UTC',
+        theme: 'dark',
+        style: '1',
+        locale: 'en',
+        toolbar_bg: '#0d1729',
+        enable_publishing: false,
+        allow_symbol_change: true,
+        hide_top_toolbar: false,
+        withdateranges: true,
+        container_id: 'tradingview_widget',
+      });
+    }
+
     fetchMarket();
     const interval = setInterval(fetchMarket, 30000);
+
+    const script = document.createElement('script');
+    script.src = 'https://s3.tradingview.com/tv.js';
+    script.async = true;
+    script.onload = () => createTradingViewWidget();
+    document.body.appendChild(script);
+
     return () => {
       controller.abort();
       clearInterval(interval);
+      document.body.removeChild(script);
     };
   }, []);
 
-  const handleDepositRequest = () => {
-    setDepositMessage('');
-    const amount = Number(depositAmount);
-    if (!amount || amount <= 0) {
-      setDepositMessage('Enter a valid deposit amount.');
+  const handleTransactionRequest = () => {
+    setTransactionMessage('');
+    const amount = Number(transactionAmount);
+
+    if (!amount || amount < minAmount) {
+      setTransactionMessage(`Minimum deposit/trading amount is $${minAmount}`);
+      return;
+    }
+
+    if (!walletAddress.trim()) {
+      setTransactionMessage('Enter your USDT TRC20/BEP20 wallet address.');
+      return;
+    }
+
+    if (transactionType === 'Withdrawal' && amount > liveBalance) {
+      setTransactionMessage('Withdrawal amount exceeds available live balance.');
       return;
     }
 
     const request = {
       id: Date.now(),
-      method: depositMethod,
+      type: transactionType,
+      method: transactionMethod,
       amount,
+      walletAddress: walletAddress.trim(),
+      transactionHash: transactionHash.trim(),
       createdAt: new Date().toLocaleString(),
       status: 'Pending',
     };
 
-    setDepositRequests((current) => [request, ...current]);
-    setDepositAmount('');
-    setDepositMessage(`Deposit request created for ${depositMethod}. A support agent will review it.`);
+    setTransactionRequests((current) => [request, ...current]);
+    setTransactionAmount('');
+    setWalletAddress('');
+    setTransactionHash('');
+    setTransactionMessage(`${transactionType} request submitted. Admin approval is pending.`);
   };
 
   const handleSwitchMode = () => {
@@ -127,7 +173,7 @@ function App() {
             Trading dashboard for international markets
           </h1>
           <p className="mt-4 max-w-2xl text-slate-400 sm:text-lg">
-            Practice with a demo account, request manual deposits, and monitor live global market data from a trusted feed.
+            Practice with a demo account, request Binance crypto wallet funding, and monitor a live all-markets chart from TradingView or MetaTrader 5.
           </p>
         </div>
 
@@ -162,8 +208,8 @@ function App() {
             <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl shadow-slate-950/20">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm uppercase tracking-[0.2em] text-emerald-400">Market feed</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-white">Live international data</h2>
+                  <p className="text-sm uppercase tracking-[0.2em] text-emerald-400">Market chart</p>
+                  <h2 className="mt-2 text-2xl font-semibold text-white">Live all-markets chart</h2>
                 </div>
                 <p className="text-sm text-slate-400">Updated every 30 seconds</p>
               </div>
@@ -173,10 +219,11 @@ function App() {
                 className="mt-6 h-[320px] w-full overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/90"
                 aria-label="Trading chart"
               >
-                <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center text-slate-400">
-                  <p className="text-sm uppercase tracking-[0.2em] text-emerald-400">Chart placeholder</p>
+                <div id="tradingview_widget" className="h-full w-full" />
+                <div className="pointer-events-none absolute inset-x-0 top-0 flex h-full flex-col items-center justify-center gap-3 px-6 text-center text-slate-400 sm:relative sm:pointer-events-auto">
+                  <p className="text-sm uppercase tracking-[0.2em] text-emerald-400">Live all-markets chart</p>
                   <p className="max-w-md text-sm leading-6">
-                    Add a TradingView widget script in the page head or replace this fallback with your preferred market API feed.
+                    This area is configured for a live all-markets TradingView or MetaTrader 5 widget. Replace the fallback with your preferred chart feed.
                   </p>
                   <div className="mt-2 flex flex-wrap justify-center gap-2">
                     {chartSymbols.map((item) => (
@@ -228,53 +275,78 @@ function App() {
             <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl shadow-slate-950/20">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm uppercase tracking-[0.2em] text-emerald-400">Deposit request</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-white">Manual funding options</h2>
+                  <p className="text-sm uppercase tracking-[0.2em] text-emerald-400">Crypto transactions</p>
+                  <h2 className="mt-2 text-2xl font-semibold text-white">Binance deposit & withdrawal</h2>
                 </div>
                 <span className="rounded-full bg-slate-950/80 px-3 py-1 text-xs uppercase tracking-[0.18em] text-slate-400">
-                  Offline flow
+                  Manual approval
                 </span>
               </div>
 
               <div className="mt-6 space-y-4">
-                <div className="grid gap-3">
-                  {depositMethods.map((method) => (
+                <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-sm text-slate-300">
+                  USDT wallet funding only (TRC20 / BEP20) via {transactionMethod}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {['Deposit', 'Withdrawal'].map((type) => (
                     <button
-                      key={method}
+                      key={type}
                       type="button"
-                      onClick={() => setDepositMethod(method)}
-                      className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
-                        method === depositMethod
+                      onClick={() => setTransactionType(type)}
+                      className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+                        transactionType === type
                           ? 'border-emerald-500/70 bg-emerald-500/10 text-white'
                           : 'border-slate-800 bg-slate-950/70 text-slate-300 hover:border-emerald-500/30 hover:bg-slate-900'
                       }`}
                     >
-                      {method}
+                      {type}
                     </button>
                   ))}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300">Amount to deposit</label>
-                  <input
-                    type="number"
-                    placeholder="Enter amount"
-                    value={depositAmount}
-                    onChange={(event) => setDepositAmount(event.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-emerald-500"
-                  />
+                <div className="grid gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300">USDT wallet address (TRC20 / BEP20)</label>
+                    <input
+                      type="text"
+                      placeholder="Enter your wallet address"
+                      value={walletAddress}
+                      onChange={(event) => setWalletAddress(event.target.value)}
+                      className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300">Amount (USD)</label>
+                    <input
+                      type="number"
+                      placeholder="Enter amount"
+                      value={transactionAmount}
+                      onChange={(event) => setTransactionAmount(event.target.value)}
+                      className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300">Transaction hash / proof of payment</label>
+                    <input
+                      type="text"
+                      placeholder="Paste transaction hash or file reference"
+                      value={transactionHash}
+                      onChange={(event) => setTransactionHash(event.target.value)}
+                      className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3 text-white outline-none transition focus:border-emerald-500"
+                    />
+                  </div>
                 </div>
                 <button
                   type="button"
-                  onClick={handleDepositRequest}
+                  onClick={handleTransactionRequest}
                   className="w-full rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400"
                 >
-                  Submit deposit request
+                  Submit {transactionType} request
                 </button>
-                {depositMessage && <p className="text-sm text-emerald-300">{depositMessage}</p>}
+                {transactionMessage && <p className="text-sm text-emerald-300">{transactionMessage}</p>}
                 <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-sm text-slate-400">
-                  <p className="font-semibold text-white">How this works</p>
+                  <p className="font-semibold text-white">Manual approval</p>
                   <p className="mt-2 leading-6">
-                    The selected payment provider is used as a manual deposit request option. Once submitted, a team member can verify your transfer and credit your account.
+                    All deposit and withdrawal requests are handled manually. Admin approval is required before balances are updated.
                   </p>
                 </div>
               </div>
@@ -284,16 +356,7 @@ function App() {
               <p className="text-sm uppercase tracking-[0.2em] text-emerald-400">Supported funding</p>
               <ul className="mt-4 space-y-3 text-sm text-slate-300">
                 <li className="rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
-                  JazzCash - manual transfer request and verification
-                </li>
-                <li className="rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
-                  EasyPaisa - manual deposit request system
-                </li>
-                <li className="rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
-                  Bank accounts - verify slip and update balance manually
-                </li>
-                <li className="rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-3">
-                  Binance - crypto gateway support for transfers and settlements
+                  Binance USDT funding only (TRC20 / BEP20)
                 </li>
               </ul>
             </div>
@@ -320,20 +383,22 @@ function App() {
         </section>
 
         <section className="mt-8 rounded-3xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl shadow-slate-950/20">
-          <h2 className="text-xl font-semibold text-white">Live deposit requests</h2>
+          <h2 className="text-xl font-semibold text-white">Manual transaction requests</h2>
           <div className="mt-4 overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/80">
-            {depositRequests.length === 0 ? (
-              <div className="p-6 text-slate-400">No deposit requests yet. Submit a request to begin.</div>
+            {transactionRequests.length === 0 ? (
+              <div className="p-6 text-slate-400">No transaction requests yet. Submit a deposit or withdrawal to begin.</div>
             ) : (
               <div className="divide-y divide-slate-800">
-                {depositRequests.map((request) => (
-                  <div key={request.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                {transactionRequests.map((request) => (
+                  <div key={request.id} className="grid gap-3 px-5 py-4 sm:grid-cols-[1.5fr_1fr_1fr_0.8fr] sm:items-center">
                     <div>
-                      <p className="font-semibold text-white">{request.method}</p>
+                      <p className="font-semibold text-white">{request.type}</p>
                       <p className="text-sm text-slate-400">{request.createdAt}</p>
+                      <p className="text-sm text-slate-400">{request.walletAddress}</p>
                     </div>
                     <div className="text-sm text-slate-200">{formatCurrency(request.amount)}</div>
-                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-emerald-200">
+                    <div className="text-sm break-all text-slate-300">{request.transactionHash || 'No hash supplied'}</div>
+                    <span className="self-start rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-emerald-200 sm:self-center">
                       {request.status}
                     </span>
                   </div>

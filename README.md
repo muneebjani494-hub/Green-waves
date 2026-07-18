@@ -6,8 +6,8 @@ A polished Vite + React + Tailwind dashboard starter for financial trading and i
 
 - Professional trading dashboard UI
 - Demo account mode for practice trading
-- Manual deposit request workflow for JazzCash, EasyPaisa, Bank Transfer, and Binance
-- Live market data from CoinGecko
+- Manual deposit request workflow for Binance crypto wallet funding
+- Live all-markets chart ready for TradingView or MetaTrader 5 integration
 - Ready for Vercel deployment with SPA fallback
 
 ## Setup
